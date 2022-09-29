@@ -41,6 +41,9 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "corsheaders",
+    "rest_framework",
+    "rest_framework.authtoken",
+    "accounts",
 ]
 
 MIDDLEWARE = [
@@ -132,3 +135,5 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
+
+AUTH_USER_MODEL = "accounts.User"
