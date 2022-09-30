@@ -1,4 +1,4 @@
-from accounts import models
+from django.contrib.auth import models as auth_models
 from accounts import serializers
 from rest_framework import authentication
 from rest_framework import generics
@@ -10,7 +10,7 @@ from rest_framework import status
 
 class RegisterAPI(generics.CreateAPIView):
     serializer_class = serializers.UserSerializer
-    queryset = models.User.objects.all()
+    queryset = auth_models.User.objects.all()
 
     def post(self, request):
         response = self.create(request)
@@ -42,7 +42,7 @@ class UserAPI(views.APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
         elif new_email:
-            user = models.User.objects.filter(email=new_email).first()
+            user = auth_models.User.objects.filter(email=new_email).first()
             if user:
                 return Response(
                     data={
