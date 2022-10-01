@@ -1,3 +1,4 @@
+from http import HTTPStatus
 from django.contrib.auth import models as auth_models
 from accounts import serializers
 from rest_framework import authentication
@@ -13,9 +14,14 @@ class RegisterAPI(generics.CreateAPIView):
     queryset = auth_models.User.objects.all()
 
     def post(self, request):
+        user = auth_models.User.objects.filter(username=request.data["email"]).first()
+        if user:
+            return Response(
+                {"message": "User already exists"}, status=HTTPStatus.BAD_REQUEST
+            )
         response = self.create(request)
         return response
-    
+
 
 class UserAPI(views.APIView):
     permission_classes = (permissions.IsAuthenticated,)
@@ -33,7 +39,10 @@ class UserAPI(views.APIView):
             if request.user.check_password(current_password):
                 request.user.set_password(new_password)
                 request.user.save()
-                return Response({"message": "Password changed successfully"}, status=status.HTTP_200_OK)
+                return Response(
+                    {"message": "Password changed successfully"},
+                    status=status.HTTP_200_OK,
+                )
             else:
                 return Response(
                     data={
@@ -53,9 +62,13 @@ class UserAPI(views.APIView):
             else:
                 request.user.email = new_email
                 request.user.save()
-                return Response({"message": "Email changed successfully"}, status=status.HTTP_200_OK)
+                return Response(
+                    {"message": "Email changed successfully"}, status=status.HTTP_200_OK
+                )
         else:
-            user = serializers.UserSerializer(instance=request.user, data=request.data, partial=True)
+            user = serializers.UserSerializer(
+                instance=request.user, data=request.data, partial=True
+            )
             if user.is_valid():
                 user.save()
                 return self.get(request)
