@@ -3,6 +3,6 @@ from markets import views
 
 
 urlpatterns = [
-    path("summary/", views.SummaryAPI.as_view(), name="summary"),
     path("stock-info/<str:symbol>/", views.StockInfo.as_view(), name="stock-info"),
+    path("historical-data/<str:symbol>/<str:interval>/<str:range>", views.GetHistoricalAPI.as_view(), name="historical-data")
 ]
