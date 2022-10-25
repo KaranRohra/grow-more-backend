@@ -12,5 +12,6 @@ class GetHistoricalAPI(views.APIView):
         df = script.history(period=range, interval=interval)
         df = df[["Open", "High", "Low", "Close"]].to_dict("split")
         return Response(
-            {"timestamp": df["index"], "ohlc": df["data"], "columns": df["columns"]}
+            {"timestamp": df["index"], "ohlc": df["data"],
+                "columns": df["columns"]}
         )
