@@ -2,6 +2,7 @@ import yfinance
 from rest_framework import views
 from rest_framework.response import Response
 
+
 class StockInfo(views.APIView):
     def get(self, request, symbol):
         script = yfinance.Ticker(symbol).info
