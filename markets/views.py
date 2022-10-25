@@ -1,9 +1,9 @@
 from django.shortcuts import HttpResponse
 import yfinance
 from rest_framework import views
-# Create your views here.
+
 class GetHistoricalAPI(views.APIView):
-    def get(self, request, **kwargs):
+    def get(self, request,*args, **kwargs):
         symbol = kwargs["symbol"]
         interval = kwargs["interval"]
         range = kwargs["range"]
