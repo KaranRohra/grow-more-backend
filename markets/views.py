@@ -1,6 +1,10 @@
 import yfinance
+import pandas as pd
 from rest_framework import views
 from rest_framework.response import Response
+from markets import models
+from markets import serializers
+from markets import data_feeder
 
 
 class StockSummaryAPI(views.APIView):
@@ -20,3 +24,9 @@ class GetHistoricalAPI(views.APIView):
         return Response(
             {"timestamp": df["index"], "ohlc": df["data"], "columns": df["columns"]}
         )
+
+
+class InsertStockDataAPI(views.APIView):
+    def get(self, request, *args, **kwargs):
+        data_feeder.insert_financial_data()
+        return Response()
