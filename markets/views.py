@@ -1,6 +1,7 @@
 from rest_framework.response import Response
 import yfinance
 from rest_framework import views
+from markets import models
 
 
 class GetHistoricalAPI(views.APIView):
@@ -18,3 +19,9 @@ class GetHistoricalAPI(views.APIView):
             "columns": df["columns"]
             }
         )
+
+class GetProfitAndLoss(views.APIView):
+    def get(self, request, symbol):
+        obj = models.ProfitAndLoss.objects.filter(stock__nse_symbol = symbol)
+        obj.save()
+        return Response(obj)

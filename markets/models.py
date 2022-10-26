@@ -1,11 +1,8 @@
 from django.db import models
 
-class Stock(models.Model):
-    name = models.CharField(max_length=20)
-    symbol = models.CharField(max_length=20)
 
 class ProfitAndLoss(models.Model):
-    symbol = models.ForeignKey(Stock, on_delete=models.CASCADE)
+    stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
     year = models.CharField(max_length=32)
     revenue = models.CharField(max_length=128)
     expenses = models.CharField(max_length=128)
@@ -17,5 +14,8 @@ class ProfitAndLoss(models.Model):
     profit_before_tax = models.CharField(max_length=128)
     tax = models.CharField(max_length=128)
     net_profit = models.CharField(max_length=128)
-    eps = models.CharField(max_length=128)
-    dividend_payout = models.CharField(max_length=128,blank=True,null=True)
+    eps_in_rs = models.CharField(max_length=128)
+    dividend_payout = models.CharField(max_length=128, blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
