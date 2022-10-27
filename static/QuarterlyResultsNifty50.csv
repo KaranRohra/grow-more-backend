@@ -1,4 +1,4 @@
-quarter,revenue,expenses,operating_profit,opm,other_income,interest,depreciation,profit_before_tax,tax,net_profit,eps in_rs,symbol
+quarter,revenue,expenses,operating_profit,opm,other_income,interest,depreciation,profit_before_tax,tax,net_profit,eps_in_rs,symbol
 Sep 2019,"22,629","16,990","5,639",25%,626,42,727,"5,496",27%,"4,037",9.44,INFY
 Dec 2019,"23,092","17,291","5,801",25%,827,42,737,"5,849",24%,"4,466",10.47,INFY
 Mar 2020,"23,267","17,591","5,676",24%,614,45,749,"5,496",21%,"4,335",10.15,INFY
