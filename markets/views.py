@@ -1,7 +1,7 @@
 import yfinance
 from rest_framework import views
 from rest_framework.response import Response
-
+from markets import models
 
 class StockInfo(views.APIView):
     def get(self, request, symbol):
@@ -20,3 +20,8 @@ class GetHistoricalAPI(views.APIView):
         return Response(
             {"timestamp": df["index"], "ohlc": df["data"], "columns": df["columns"]}
         )
+
+
+class GetQuarterlyResultsAPI(views.APIView):
+    def get(self, request, **kwargs):
+        models.QuarterlyResult.objects.get(stock__nse_symbol = kwargs["symbol"])
