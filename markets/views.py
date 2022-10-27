@@ -30,7 +30,7 @@ class GetCashflowAPI(views.APIView):
     def get(self, request, *args, **kwargs):
         return Response(
             serializers.CashflowSerializer(
-                models.Cashflow.objects.filter(stock__symbol=kwargs["symbol"]),
+                models.Cashflow.objects.filter(stock__nse_symbol=kwargs["symbol"]),
                 many=True,
             ).data
         )
@@ -41,7 +41,7 @@ class GetShareHoldingPatternAPI(views.APIView):
         return Response(
             serializers.ShareHoldingPatternSerializer(
                 models.ShareHoldingPattern.objects.filter(
-                    stock__symbol=kwargs["symbol"]
+                    stock__nse_symbol=kwargs["symbol"]
                 ),
                 many=True,
             ).data
