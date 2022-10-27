@@ -50,3 +50,7 @@ def insert_financial_data():
         filename="static/ProfitAndLossNifty50.csv",
         model=models.ProfitAndLoss,
     )
+    insert_financial_csv_data(
+        filename="static/BalanceSheetNifty50.csv",
+        model=models.ProfitAndLoss,
+    )
