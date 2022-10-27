@@ -42,3 +42,7 @@ def insert_financial_data():
         filename="static/CashflowNifty50.csv",
         model=models.Cashflow,
     )
+    insert_financial_csv_data(
+        filename="static/QuarterlyResultsNifty50.csv",
+        model=models.QuarterlyResult,
+    )
