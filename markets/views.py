@@ -26,4 +26,4 @@ class GetHistoricalAPI(views.APIView):
 class GetQuarterlyResultsAPI(views.APIView):
     def get(self, request, **kwargs):
         qr = models.QuarterlyResult.objects.filter(stock__nse_symbol = kwargs["symbol"])
-        return Response(serializers.QuarterlyResultSerializer(qr).data, many=True)
+        return Response(serializers.QuarterlyResultSerializer(qr, many=True).data)
