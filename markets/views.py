@@ -1,6 +1,9 @@
 import yfinance
 from rest_framework import views
 from rest_framework.response import Response
+from markets import models
+from markets import serializers
+from markets import data_feeder
 
 
 class StockSummaryAPI(views.APIView):
@@ -20,3 +23,56 @@ class GetHistoricalAPI(views.APIView):
         return Response(
             {"timestamp": df["index"], "ohlc": df["data"], "columns": df["columns"]}
         )
+
+
+class GetCashflowAPI(views.APIView):
+    def get(self, request, *args, **kwargs):
+        return Response(
+            serializers.CashflowSerializer(
+                models.Cashflow.objects.filter(stock__nse_symbol=kwargs["symbol"]),
+                many=True,
+            ).data
+        )
+
+
+class GetShareHoldingPatternAPI(views.APIView):
+    def get(self, request, *args, **kwargs):
+        return Response(
+            serializers.ShareHoldingPatternSerializer(
+                models.ShareHoldingPattern.objects.filter(
+                    stock__nse_symbol=kwargs["symbol"]
+                ),
+                many=True,
+            ).data
+        )
+
+
+class GetQuarterlyResultsAPI(views.APIView):
+    def get(self, request, **kwargs):
+        qr = models.QuarterlyResult.objects.filter(stock__nse_symbol=kwargs["symbol"])
+        return Response(serializers.QuarterlyResultSerializer(qr, many=True).data)
+
+
+class GetProfitAndLossAPI(views.APIView):
+    def get(self, request, symbol):
+        return Response(
+            serializers.ProfitAndLossSerializer(
+                models.ProfitAndLoss.objects.filter(stock__nse_symbol=symbol), many=True
+            ).data
+        )
+
+
+class GetBalanceSheetAPI(views.APIView):
+    def get(self, request, *args, **kwargs):
+        return Response(
+            serializers.BalanceSheetSerializer(
+                models.BalanceSheet.objects.filter(stock__nse_symbol=kwargs["symbol"]),
+                many=True,
+            ).data
+        )
+
+
+class InsertStockDataAPI(views.APIView):
+    def get(self, request, *args, **kwargs):
+        data_feeder.insert_financial_data()
+        return Response()
