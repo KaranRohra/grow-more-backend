@@ -2,6 +2,7 @@ import yfinance
 from rest_framework import views
 from rest_framework.response import Response
 from markets import models
+from markets import serializers
 
 class StockInfo(views.APIView):
     def get(self, request, symbol):
@@ -24,4 +25,5 @@ class GetHistoricalAPI(views.APIView):
 
 class GetQuarterlyResultsAPI(views.APIView):
     def get(self, request, **kwargs):
-        models.QuarterlyResult.objects.filter(stock__nse_symbol = kwargs["symbol"])
+        qr = models.QuarterlyResult.objects.filter(stock__nse_symbol = kwargs["symbol"])
+        return Response(serializers.QuarterlyResultSerializer(qr).data, many=True)
