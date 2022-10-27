@@ -18,3 +18,9 @@ class ShareHoldingPatternSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ShareHoldingPattern
         fields = "__all__"
+
+
+class QuarterlyResultSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.QuarterlyResult
+        fields = "__all__"

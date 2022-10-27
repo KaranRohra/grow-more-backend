@@ -15,3 +15,8 @@ class ShareHoldingPatternAdmin(admin.ModelAdmin):
 @admin.register(models.Cashflow)
 class ShareHoldingPatternAdmin(admin.ModelAdmin):
     list_display = ("id", "stock")
+
+
+@admin.register(models.QuarterlyResult)
+class QuarterlyResultAdmin(admin.ModelAdmin):
+    list_display = ("id", "stock", "quarter")

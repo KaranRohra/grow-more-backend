@@ -48,6 +48,12 @@ class GetShareHoldingPatternAPI(views.APIView):
         )
 
 
+class GetQuarterlyResultsAPI(views.APIView):
+    def get(self, request, **kwargs):
+        qr = models.QuarterlyResult.objects.filter(stock__nse_symbol=kwargs["symbol"])
+        return Response(serializers.QuarterlyResultSerializer(qr, many=True).data)
+
+
 class InsertStockDataAPI(views.APIView):
     def get(self, request, *args, **kwargs):
         data_feeder.insert_financial_data()

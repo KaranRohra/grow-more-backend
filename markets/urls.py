@@ -7,6 +7,7 @@ urlpatterns = [
     path("summary/<str:symbol>/", views.StockSummaryAPI.as_view(), name="stock-summary"),
     path("<str:symbol>/cashflow/", views.GetCashflowAPI.as_view(), name="cashflow"),
     path("<str:symbol>/share-holding-pattern/", views.GetShareHoldingPatternAPI.as_view(), name="share-holding-pattern"),
+    path("<str:symbol>/quarterly-result/", views.GetQuarterlyResultsAPI.as_view(), name="quarterly-result"),
 
     # Data Feeding APIs
     path("insert-data/", views.InsertStockDataAPI.as_view(), name="insert-data"),
