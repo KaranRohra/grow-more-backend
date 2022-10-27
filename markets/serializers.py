@@ -9,33 +9,30 @@ class StockSerializer(serializers.ModelSerializer):
 
 
 class CashflowSerializer(serializers.ModelSerializer):
-    stock = StockSerializer()
     class Meta:
         model = models.Cashflow
         fields = "__all__"
 
 
 class ShareHoldingPatternSerializer(serializers.ModelSerializer):
-    stock = StockSerializer()
     class Meta:
         model = models.ShareHoldingPattern
         fields = "__all__"
 
 
 class QuarterlyResultSerializer(serializers.ModelSerializer):
-    stock = StockSerializer()
     class Meta:
         model = models.QuarterlyResult
+        fields = "__all__"
 
 
 class ProfitAndLossSerializer(serializers.ModelSerializer):
-    stock = StockSerializer()
     class Meta:
         model = models.ProfitAndLoss
+        fields = "__all__"
 
 
 class BalanceSheetSerializer(serializers.ModelSerializer):
-    stock = StockSerializer()
     class Meta:
         model = models.BalanceSheet
         fields = "__all__"

@@ -61,7 +61,6 @@ class QuarterlyResult(models.Model):
     tax = models.CharField(max_length=64)
     net_profit = models.CharField(max_length=64)
     eps_in_rs = models.CharField(max_length=64)
-    symbol = models.CharField(max_length=64)
     stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
 
     created_at = models.DateTimeField(auto_now_add=True)
