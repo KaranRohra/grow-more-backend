@@ -23,4 +23,9 @@ class ShareHoldingPatternSerializer(serializers.ModelSerializer):
 class QuarterlyResultSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.QuarterlyResult
+
+
+class ProfitAndLoss(serializers.ModelSerializer):
+    class Meta:
+        model = models.ProfitAndLoss
         fields = "__all__"

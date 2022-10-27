@@ -1,5 +1,4 @@
 import yfinance
-import pandas as pd
 from rest_framework import views
 from rest_framework.response import Response
 from markets import models
@@ -52,6 +51,15 @@ class GetQuarterlyResultsAPI(views.APIView):
     def get(self, request, **kwargs):
         qr = models.QuarterlyResult.objects.filter(stock__nse_symbol=kwargs["symbol"])
         return Response(serializers.QuarterlyResultSerializer(qr, many=True).data)
+
+
+class GetProfitAndLossAPI(views.APIView):
+    def get(self, request, symbol):
+        return Response(
+            serializers.ProfitAndLossSerializers(
+                models.ProfitAndLoss.objects.filter(stock__nse_symbol=symbol), many=True
+            ).data
+        )
 
 
 class InsertStockDataAPI(views.APIView):
