@@ -10,6 +10,7 @@ urlpatterns = [
     path("<str:symbol>/quarterly-result/", views.GetQuarterlyResultsAPI.as_view(), name="quarterly-result"),
     path("<str:symbol>/profit-and-loss/",views.GetProfitAndLossAPI.as_view(), name="profit-and-loss"),
     path("<str:symbol>/balance-sheet/", views.GetBalanceSheetAPI.as_view(), name="balance-sheet"),
+    path("search/", views.SearchStockAPI.as_view(), name="search-stock"),
 
     # Data Feeding APIs
     path("insert-data/", views.InsertStockDataAPI.as_view(), name="insert-data"),
