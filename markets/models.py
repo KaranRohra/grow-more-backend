@@ -67,7 +67,7 @@ class QuarterlyResult(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.stock.company_name}__{self.quarter}"
 
 
@@ -90,5 +90,26 @@ class ProfitAndLoss(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        return f"{self.stock.company_name}__{self.year}"
+
+
+class BalanceSheet(models.Model):
+    year = models.CharField(max_length=32)
+    share_capital = models.CharField(max_length=64)
+    reserves = models.CharField(max_length=64)
+    borrowings = models.CharField(max_length=64)
+    other_liabilities = models.CharField(max_length=64)
+    total_liabilities = models.CharField(max_length=64)
+    fixed_assets = models.CharField(max_length=64)
+    cwip = models.CharField(max_length=64)
+    investments = models.CharField(max_length=64)
+    other_assets = models.CharField(max_length=64)
+    total_assets = models.CharField(max_length=64)
+    stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self) -> str:
         return f"{self.stock.company_name}__{self.year}"

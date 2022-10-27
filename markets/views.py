@@ -56,8 +56,18 @@ class GetQuarterlyResultsAPI(views.APIView):
 class GetProfitAndLossAPI(views.APIView):
     def get(self, request, symbol):
         return Response(
-            serializers.ProfitAndLossSerializers(
+            serializers.ProfitAndLossSerializer(
                 models.ProfitAndLoss.objects.filter(stock__nse_symbol=symbol), many=True
+            ).data
+        )
+
+
+class GetBalanceSheetAPI(views.APIView):
+    def get(self, request, *args, **kwargs):
+        return Response(
+            serializers.BalanceSheetSerializer(
+                models.BalanceSheet.objects.filter(stock__nse_symbol=kwargs["symbol"]),
+                many=True,
             ).data
         )
 

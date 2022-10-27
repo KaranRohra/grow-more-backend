@@ -25,3 +25,8 @@ class QuarterlyResultAdmin(admin.ModelAdmin):
 @admin.register(models.ProfitAndLoss)
 class ProfitAndLossAdmin(admin.ModelAdmin):
     list_display = ("id", "stock")
+
+
+@admin.register(models.BalanceSheet)
+class BalanceSheetAdmin(admin.ModelAdmin):
+    list_display = ("id", "stock")
