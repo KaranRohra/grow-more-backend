@@ -2,6 +2,7 @@ from rest_framework.response import Response
 import yfinance
 from rest_framework import views
 from markets import models
+from markets import serializers
 
 
 class GetHistoricalAPI(views.APIView):
@@ -20,8 +21,9 @@ class GetHistoricalAPI(views.APIView):
             }
         )
 
-class GetProfitAndLoss(views.APIView):
+class GetProfitAndLossAPI(views.APIView):
     def get(self, request, symbol):
-        obj = models.ProfitAndLoss.objects.filter(stock__nse_symbol = symbol)
-        obj.save()
-        return Response(obj)
+        return Response(serializers.ProfitAndLossSerializers(
+            models.ProfitAndLoss.objects.filter(stock__nse_symbol = symbol),
+            many=True
+        ).data);
