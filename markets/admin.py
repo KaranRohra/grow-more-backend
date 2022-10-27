@@ -1,3 +1,7 @@
 from django.contrib import admin
+from markets import models
 
-# Register your models here.
+
+@admin.register(models.BalanceSheet)
+class BalanceSheetAdmin(admin.ModelAdmin):
+    list_display = ("id", "stock")
