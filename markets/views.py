@@ -26,6 +26,28 @@ class GetHistoricalAPI(views.APIView):
         )
 
 
+class GetCashflowAPI(views.APIView):
+    def get(self, request, *args, **kwargs):
+        return Response(
+            serializers.CashflowSerializer(
+                models.Cashflow.objects.filter(stock__symbol=kwargs["symbol"]),
+                many=True,
+            ).data
+        )
+
+
+class GetShareHoldingPatternAPI(views.APIView):
+    def get(self, request, *args, **kwargs):
+        return Response(
+            serializers.ShareHoldingPatternSerializer(
+                models.ShareHoldingPattern.objects.filter(
+                    stock__symbol=kwargs["symbol"]
+                ),
+                many=True,
+            ).data
+        )
+
+
 class InsertStockDataAPI(views.APIView):
     def get(self, request, *args, **kwargs):
         data_feeder.insert_financial_data()
