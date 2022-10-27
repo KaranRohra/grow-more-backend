@@ -1,9 +1,11 @@
 import yfinance
 from rest_framework import views
 from rest_framework.response import Response
+from rest_framework import generics
 from markets import models
 from markets import serializers
 from markets import data_feeder
+from django.db import models as db_models
 
 
 class StockSummaryAPI(views.APIView):
@@ -76,3 +78,20 @@ class InsertStockDataAPI(views.APIView):
     def get(self, request, *args, **kwargs):
         data_feeder.insert_financial_data()
         return Response()
+
+
+class SearchStockAPI(generics.ListAPIView):
+    serializer_class = serializers.StockSerializer
+    queryset = models.Stock.objects.all()
+
+    def get_queryset(self):
+        lst = self.request.query_params["query"].split()
+        stocks = []
+        for stock in lst:
+            stocks.extend(
+                models.Stock.objects.filter(
+                    db_models.Q(company_name__icontains=stock)
+                    | db_models.Q(nse_symbol__icontains=stock)
+                )
+            )
+        return stocks
