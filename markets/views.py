@@ -1,17 +1,28 @@
 import yfinance
+from nsetools import Nse
 from rest_framework import views
 from rest_framework.response import Response
 from rest_framework import generics
+from django.db import models as db_models
 from markets import models
 from markets import serializers
 from markets import data_feeder
-from django.db import models as db_models
 
 
 class StockSummaryAPI(views.APIView):
     def get(self, request, *args, **kwargs):
-        script = yfinance.Ticker(kwargs["symbol"]).info
-        return Response(script)
+        symbol = kwargs["symbol"]
+        if request.query_params["from"] == "NSE":
+            summary = Nse().get_quote(symbol)
+            stock = models.Stock.objects.filter(nse_symbol=symbol).first()
+        elif request.query_params["from"] == "YAHOO":
+            summary = yfinance.Ticker(symbol).info
+            stock = models.Stock.objects.filter(yahoo_symbol=symbol).first()
+        else:
+            return Response("Invalid from, Please specify NSE or YAHOO")
+        if summary is not None:
+            summary.update(serializers.StockSerializer(stock).data)
+        return Response(summary)
 
 
 class GetHistoricalAPI(views.APIView):
