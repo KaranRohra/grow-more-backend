@@ -2,16 +2,16 @@ import yfinance
 from rest_framework import views
 from rest_framework.response import Response
 from rest_framework import generics
+from django.db import models as db_models
 from markets import models
 from markets import serializers
 from markets import data_feeder
-from django.db import models as db_models
 
 
 class StockSummaryAPI(views.APIView):
     def get(self, request, *args, **kwargs):
         script = yfinance.Ticker(kwargs["symbol"]).info
-        stock = models.Stock.objects.filter(yahoo_symbol=kwargs["symbol"])
+        stock = models.Stock.objects.filter(yahoo_symbol=kwargs["symbol"]).first()
         script.update(serializers.StockSerializer(stock).data)
         return Response(script)
 
