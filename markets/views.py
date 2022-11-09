@@ -11,6 +11,8 @@ from django.db import models as db_models
 class StockSummaryAPI(views.APIView):
     def get(self, request, *args, **kwargs):
         script = yfinance.Ticker(kwargs["symbol"]).info
+        stock = models.Stock.objects.filter(yahoo_symbol=kwargs["symbol"])
+        script.update(serializers.StockSerializer(stock).data)
         return Response(script)
 
 
