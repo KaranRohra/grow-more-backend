@@ -19,6 +19,7 @@ def insert_nifty50_stocks():
 
 def insert_financial_csv_data(filename, model):
     df = pd.read_csv(filename)
+    df.column.fillna(0, inplace=True)
     columns, result = list(df.columns), []
     n = len(columns)
     for row in df.values:
