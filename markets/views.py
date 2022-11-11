@@ -122,20 +122,36 @@ def get_symbol_history(symbol, period, interval):
 
 
 def design_chart(symbols):
-    data, result = [], []
+    data = []
+    result = {
+        "price" : [],
+    }
     for symbol in symbols:
         df = get_symbol_history(symbol+".NS", "1y", "1wk")
         data.append({"timestamp": df["index"], "close": df["data"]})
 
     for i in range(0, len(data)):
         closing_prices = data[i]["close"]
-        timestamp = data[i]["timestamp"]
-        coordinates = {"symbol": symbols[i], "xy": []}
+        y = []
         for j in range(0, len(closing_prices)):
             percent = (
                 (closing_prices[j][0] - closing_prices[0][0]) / closing_prices[0][0]
             ) * 100
-            coordinates["xy"].append({"x": timestamp[j], "y": percent})
-        result.append(coordinates)
+            y.append(percent)
+        result["price"].append({"symbol": symbols[i], "y": y})
+    result["x"] = data[0]["timestamp"]
     return result
 
+# {
+#   "price": [
+#     {
+#       "symbol": "WIPRO",
+#       "y": [1, 2, 3, 4]
+#     },
+#     {
+#       "symbol": "WIPRO",
+#       "y": [1, 2, 3, 4]
+#     }
+#   ],
+#   "x": ["Time1", "Time2"]
+# }
