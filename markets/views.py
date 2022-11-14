@@ -11,21 +11,19 @@ from markets import data_feeder
 class StockSummaryAPI(views.APIView):
     def get(self, request, *args, **kwargs):
         script = yfinance.Ticker(kwargs["symbol"]).info
-        stock = models.Stock.objects.filter(yahoo_symbol=kwargs["symbol"]).first()
+        stock = models.Stock.objects.filter(
+            yahoo_symbol=kwargs["symbol"]).first()
         script.update(serializers.StockSerializer(stock).data)
         return Response(script)
 
 
 class GetHistoricalAPI(views.APIView):
     def get(self, request, *args, **kwargs):
-        script = yfinance.Ticker(kwargs["symbol"])
-        df = script.history(
-            period=request.query_params["range"],
-            interval=request.query_params["interval"],
-        ).dropna()
-        df = df[["Open", "High", "Low", "Close"]].to_dict("split")
+        df = get_symbol_history(
+            kwargs["symbol"], request.query_params["range"], request.query_params["interval"])
         return Response(
-            {"timestamp": df["index"], "ohlc": df["data"], "columns": df["columns"]}
+            {"timestamp": df["index"], "ohlc": df["data"],
+                "columns": df["columns"]}
         )
 
 
@@ -33,7 +31,8 @@ class GetCashflowAPI(views.APIView):
     def get(self, request, *args, **kwargs):
         return Response(
             serializers.CashflowSerializer(
-                models.Cashflow.objects.filter(stock__nse_symbol=kwargs["symbol"]),
+                models.Cashflow.objects.filter(
+                    stock__nse_symbol=kwargs["symbol"]),
                 many=True,
             ).data
         )
@@ -53,7 +52,8 @@ class GetShareHoldingPatternAPI(views.APIView):
 
 class GetQuarterlyResultsAPI(views.APIView):
     def get(self, request, **kwargs):
-        qr = models.QuarterlyResult.objects.filter(stock__nse_symbol=kwargs["symbol"])
+        qr = models.QuarterlyResult.objects.filter(
+            stock__nse_symbol=kwargs["symbol"])
         return Response(serializers.QuarterlyResultSerializer(qr, many=True).data)
 
 
@@ -70,7 +70,8 @@ class GetBalanceSheetAPI(views.APIView):
     def get(self, request, *args, **kwargs):
         return Response(
             serializers.BalanceSheetSerializer(
-                models.BalanceSheet.objects.filter(stock__nse_symbol=kwargs["symbol"]),
+                models.BalanceSheet.objects.filter(
+                    stock__nse_symbol=kwargs["symbol"]),
                 many=True,
             ).data
         )
@@ -97,3 +98,52 @@ class SearchStockAPI(generics.ListAPIView):
                 )
             )
         return stocks
+
+
+class GetStockPeerAPI(views.APIView):
+    def get(self, request, *args, **kwargs):
+        stock = models.Stock.objects.get(nse_symbol=kwargs["symbol"])
+        peers = (
+            models.Stock.objects.filter(industry=stock.industry)
+            .exclude(nse_symbol=kwargs["symbol"])
+            .values_list("nse_symbol", flat=True)
+        )
+        symbols = [kwargs["symbol"]]
+        symbols.extend(peers)
+        return Response(design_chart(symbols[0:3]))
+
+
+class GetComparisonAPI(views.APIView):
+    def get(self, request):
+        return Response(design_chart(request.query_params["symbols"].split()))
+
+
+def get_symbol_history(symbol, period, interval):
+    script = yfinance.Ticker(symbol)
+    df = script.history(
+        period=period,
+        interval=interval,
+    ).dropna()
+    return df[["Open", "High", "Low", "Close"]].to_dict("split")
+
+
+def design_chart(symbols):
+    data = []
+    result = {
+        "percent_change": [],
+    }
+    for symbol in symbols:
+        df = get_symbol_history(symbol+".NS", "1y", "1wk")
+        data.append({"timestamp": df["index"], "close": df["data"]})
+
+    for i in range(0, len(data)):
+        closing_prices = data[i]["close"]
+        y = []
+        for j in range(0, len(closing_prices)):
+            y.append(round((
+                (closing_prices[j][0] - closing_prices[0]
+                 [0]) / closing_prices[0][0]
+            ) * 100, 2))
+        result["percent_change"].append({"symbol": symbols[i], "y": y})
+    result["x"] = data[0]["timestamp"]
+    return result
