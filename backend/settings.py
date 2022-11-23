@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 from pathlib import Path
 import environ
 
+
 env = environ.Env()
 environ.Env.read_env()
 
@@ -45,6 +46,7 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "accounts",
     "markets",
+    "portfolio",
 ]
 
 MIDDLEWARE = [
@@ -142,4 +144,3 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
 ]
 
-# AUTH_USER_MODEL = "accounts.AbstractUser"
