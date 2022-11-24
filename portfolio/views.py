@@ -3,6 +3,7 @@ from rest_framework import views
 from rest_framework.response import Response
 from rest_framework import authentication
 from rest_framework import permissions
+from rest_framework import status
 
 from portfolio import models
 from markets import models as market_models
@@ -28,6 +29,7 @@ class HoldingAPI(views.APIView):
         price = nse.get_quote(stock.nse_symbol)["lastPrice"]
         message = None
         wallet = auth_models.Wallet.objects.get(user=request.user)
+        return_status = None
 
         if request.POST["type"] == "BUY":
             if wallet.balance >= price*quantity:
@@ -38,8 +40,10 @@ class HoldingAPI(views.APIView):
                 wallet.save()
                 message = "Buy order is placed"
                 models.Order.objects.create(user=request.user, stock=stock, order_type="BUY", quantity=quantity, price=price)
+                return_status = status.HTTP_200_OK
             else:
                 message = "Insufficient Balance"
+                return_status = status.HTTP_400_BAD_REQUEST
         elif request.POST["type"] == "SELL":
             message = self.sell_stock(
                 models.Holding.objects.filter(user=request.user, stock=stock).order_by(
@@ -51,8 +55,10 @@ class HoldingAPI(views.APIView):
                 request.user,
                 stock
             )   
+            return_status = status.HTTP_200_OK if message == "Sell order is placed" else status.HTTP_400_BAD_REQUEST
         else:
             message = "Invalid order type"
+            return_status = status.HTTP_400_BAD_REQUEST
 
         sm, total_quantity = 0, 0
         holding_data = models.Holding.objects.filter(user=request.user, stock=stock)
@@ -70,6 +76,7 @@ class HoldingAPI(views.APIView):
                 },
                 "message": message,
                 "wallet_balance": wallet.balance,
+                "status": return_status
             }
         )
 
