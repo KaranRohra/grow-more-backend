@@ -1,3 +1,7 @@
 from django.contrib import admin
-from django.contrib.auth import models
+from accounts import models
 
+
+@admin.register(models.Wallet)
+class WalletAdmin(admin.ModelAdmin):
+    list_display = ("user", "balance")

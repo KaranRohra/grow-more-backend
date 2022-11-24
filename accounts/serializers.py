@@ -1,4 +1,5 @@
 from django.contrib.auth import models as auth_models
+from accounts import models
 from rest_framework import serializers
 
 class UserSerializer(serializers.ModelSerializer):
@@ -14,3 +15,9 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = auth_models.User
         fields = ("id", "first_name", "last_name", "email", "password")
+
+
+class WalletSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Wallet
+        fields = "__all__"
