@@ -30,8 +30,9 @@ class UserAPI(views.APIView):
     authentication_classes = (authentication.TokenAuthentication,)
 
     def get(self, request):
-        serializer = serializers.UserSerializer(request.user)
-        return Response(serializer.data)
+        data = serializers.UserSerializer(request.user).data
+        data["balance"] = models.Wallet.objects.get(user=request.user).balance
+        return Response(data)
 
     def patch(self, request):
         current_password = request.data.get("current_password")

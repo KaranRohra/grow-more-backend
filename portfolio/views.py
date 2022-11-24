@@ -7,7 +7,7 @@ from rest_framework import permissions
 from portfolio import models
 from markets import models as market_models
 from accounts import models as auth_models
-from accounts import serializers 
+
 
 nse = Nse()
 
@@ -47,15 +47,10 @@ class HoldingAPI(views.APIView):
                 ),
                 quantity,
                 wallet,
-                price
+                price,
+                request.user,
+                stock
             )   
-            # if message:
-            #     message = "Sell order placed"
-            #     wallet.balance += price*quantity
-            #     wallet.save()
-            #     models.Order.objects.create(user=request.user, stock=stock, order_type="SELL", quantity=quantity, price=price)
-            # else:
-            #     message = "Insufficient shares"
         else:
             message = "Invalid order type"
 
@@ -78,12 +73,15 @@ class HoldingAPI(views.APIView):
             }
         )
 
-    def sell_stock(self, holding_data, quantity, wallet, price):
+    def sell_stock(self, holding_data, quantity, wallet, price, user, stock):
         total_quantity = sum([holding.quantity for holding in holding_data])
 
         if quantity > total_quantity:
             return "You do not have " + str(quantity) + " shares"
-            # return False
+
+        wallet.balance += price*quantity
+        wallet.save()
+        models.Order.objects.create(user=user, stock=stock, order_type="SELL", quantity=quantity, price=price)
 
         for holdings in holding_data:
             current_quantity = holdings.quantity
@@ -95,10 +93,7 @@ class HoldingAPI(views.APIView):
                 holdings.save()
                 break
         
-        wallet.balance += price*quantity
-        wallet.save()
         return "Sell order is placed"
-        # return True
 
     def get_holdings(self, holdings):
         symbol, quantity, sum = holdings[0].stock.nse_symbol, 0, 0
