@@ -1,5 +1,4 @@
 from http import HTTPStatus
-from django.contrib.auth import models as auth_models
 from accounts import serializers
 from rest_framework import authentication
 from rest_framework import generics
@@ -7,7 +6,9 @@ from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework import views
 from rest_framework import status
+from django.contrib.auth import models as auth_models
 
+from accounts import models
 
 class RegisterAPI(generics.CreateAPIView):
     serializer_class = serializers.UserSerializer
@@ -20,6 +21,7 @@ class RegisterAPI(generics.CreateAPIView):
                 {"message": "User already exists"}, status=HTTPStatus.BAD_REQUEST
             )
         response = self.create(request)
+        models.Wallet.objects.create(user=auth_models.User.objects.get(username=request.data["email"]))
         return response
 
 

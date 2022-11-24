@@ -9,3 +9,4 @@ class HoldingSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Holding
         fields = "__all__"
+

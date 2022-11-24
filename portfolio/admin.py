@@ -10,3 +10,4 @@ class OrderAdmin(admin.ModelAdmin):
 @admin.register(models.Holding)
 class PortfolioAdmin(admin.ModelAdmin):
     list_display = ("user", "quantity", "stock", "price")
+    
