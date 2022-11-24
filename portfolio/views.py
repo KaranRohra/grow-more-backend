@@ -24,28 +24,15 @@ class HoldingAPI(views.APIView):
         return Response(self.get_holdings(holdings))
 
     def post(self, request):
-        quantity = int(request.POST["quantity"])
-        stock = market_models.Stock.objects.get(nse_symbol=request.POST["nse_symbol"])
+        quantity = int(request.data["quantity"])
+        stock = market_models.Stock.objects.get(nse_symbol=request.data["nse_symbol"])
         price = nse.get_quote(stock.nse_symbol)["lastPrice"]
-        message = None
         wallet = auth_models.Wallet.objects.get(user=request.user)
-        return_status = None
 
-        if request.POST["type"] == "BUY":
-            if wallet.balance >= price*quantity:
-                models.Holding.objects.create(
-                    user=request.user, price=price, quantity=quantity, stock=stock
-                )
-                wallet.balance -= price*quantity
-                wallet.save()
-                message = "Buy order is placed"
-                models.Order.objects.create(user=request.user, stock=stock, order_type="BUY", quantity=quantity, price=price)
-                return_status = status.HTTP_200_OK
-            else:
-                message = "Insufficient Balance"
-                return_status = status.HTTP_400_BAD_REQUEST
-        elif request.POST["type"] == "SELL":
-            message = self.sell_stock(
+        if request.data["type"] == "BUY":
+            response = self.buy_stock(wallet, price, request.user, quantity, stock)
+        elif request.data["type"] == "SELL":
+            response = self.sell_stock(
                 models.Holding.objects.filter(user=request.user, stock=stock).order_by(
                     "created_at"
                 ),
@@ -53,17 +40,18 @@ class HoldingAPI(views.APIView):
                 wallet,
                 price,
                 request.user,
-                stock
-            )   
-            return_status = status.HTTP_200_OK if message == "Sell order is placed" else status.HTTP_400_BAD_REQUEST
+                stock,
+            )
         else:
-            message = "Invalid order type"
-            return_status = status.HTTP_400_BAD_REQUEST
+            response = {
+                "message": "Invalid order type",
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
 
         sm, total_quantity = 0, 0
         holding_data = models.Holding.objects.filter(user=request.user, stock=stock)
         if len(holding_data) == 0:
-            return Response({"message": message})
+            return Response(response)
         for holding in holding_data:
             sm += holding.price * holding.quantity
             total_quantity += holding.quantity
@@ -74,21 +62,45 @@ class HoldingAPI(views.APIView):
                     "quantity": total_quantity,
                     "symbol": stock.nse_symbol,
                 },
-                "message": message,
+                **response,
                 "wallet_balance": wallet.balance,
-                "status": return_status
             }
         )
+
+    def buy_stock(self, wallet, price, user, quantity, stock):
+        if wallet.balance >= price * quantity:
+            models.Holding.objects.create(
+                user=user, price=price, quantity=quantity, stock=stock
+            )
+            models.Order.objects.create(
+                user=user,
+                stock=stock,
+                order_type="BUY",
+                quantity=quantity,
+                price=price,
+            )
+            wallet.balance -= price * quantity
+            wallet.save()
+            return {"message": "Buy order is placed", "status": status.HTTP_200_OK}
+        return {
+            "message": "Insufficient Balance",
+            "status": status.HTTP_400_BAD_REQUEST,
+        }
 
     def sell_stock(self, holding_data, quantity, wallet, price, user, stock):
         total_quantity = sum([holding.quantity for holding in holding_data])
 
         if quantity > total_quantity:
-            return "You do not have " + str(quantity) + " shares"
+            return {
+                "message": f"You don't have {quantity} quantity of {stock.nse_symbol} shares",
+                "status": status.HTTP_400_BAD_REQUEST,
+            }
 
-        wallet.balance += price*quantity
+        wallet.balance += price * quantity
         wallet.save()
-        models.Order.objects.create(user=user, stock=stock, order_type="SELL", quantity=quantity, price=price)
+        models.Order.objects.create(
+            user=user, stock=stock, order_type="SELL", quantity=quantity, price=price
+        )
 
         for holdings in holding_data:
             current_quantity = holdings.quantity
@@ -99,8 +111,11 @@ class HoldingAPI(views.APIView):
                 holdings.quantity = current_quantity - quantity
                 holdings.save()
                 break
-        
-        return "Sell order is placed"
+
+        return {
+            "message": "Your order placed successfully",
+            "status": status.HTTP_200_OK,
+        }
 
     def get_holdings(self, holdings):
         symbol, quantity, sum = holdings[0].stock.nse_symbol, 0, 0
