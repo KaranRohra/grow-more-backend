@@ -1,4 +1,5 @@
 import yfinance
+from yahoo_fin import stock_info as si
 from rest_framework import views
 from rest_framework.response import Response
 from rest_framework import generics
@@ -10,20 +11,28 @@ from markets import data_feeder
 
 class StockSummaryAPI(views.APIView):
     def get(self, request, *args, **kwargs):
-        script = yfinance.Ticker(kwargs["symbol"]).info
-        stock = models.Stock.objects.filter(
-            yahoo_symbol=kwargs["symbol"]).first()
-        script.update(serializers.StockSerializer(stock).data)
-        return Response(script)
+        summary = si.get_quote_data(kwargs["symbol"])
+        summary["longBusinessSummary"] = "It is summary"
+        stock = models.Stock.objects.filter(yahoo_symbol=kwargs["symbol"]).first()
+        summary.update(serializers.StockSerializer(stock).data)
+        return Response(summary)
+
+    def list_to_dict(self, keys, values):
+        dic = {}
+        for key, value in zip(keys, values):
+            dic[key] = value
+        return dic
 
 
 class GetHistoricalAPI(views.APIView):
     def get(self, request, *args, **kwargs):
         df = get_symbol_history(
-            kwargs["symbol"], request.query_params["range"], request.query_params["interval"])
+            kwargs["symbol"],
+            request.query_params["range"],
+            request.query_params["interval"],
+        )
         return Response(
-            {"timestamp": df["index"], "ohlc": df["data"],
-                "columns": df["columns"]}
+            {"timestamp": df["index"], "ohlc": df["data"], "columns": df["columns"]}
         )
 
 
@@ -31,8 +40,7 @@ class GetCashflowAPI(views.APIView):
     def get(self, request, *args, **kwargs):
         return Response(
             serializers.CashflowSerializer(
-                models.Cashflow.objects.filter(
-                    stock__nse_symbol=kwargs["symbol"]),
+                models.Cashflow.objects.filter(stock__nse_symbol=kwargs["symbol"]),
                 many=True,
             ).data
         )
@@ -52,8 +60,7 @@ class GetShareHoldingPatternAPI(views.APIView):
 
 class GetQuarterlyResultsAPI(views.APIView):
     def get(self, request, **kwargs):
-        qr = models.QuarterlyResult.objects.filter(
-            stock__nse_symbol=kwargs["symbol"])
+        qr = models.QuarterlyResult.objects.filter(stock__nse_symbol=kwargs["symbol"])
         return Response(serializers.QuarterlyResultSerializer(qr, many=True).data)
 
 
@@ -70,8 +77,7 @@ class GetBalanceSheetAPI(views.APIView):
     def get(self, request, *args, **kwargs):
         return Response(
             serializers.BalanceSheetSerializer(
-                models.BalanceSheet.objects.filter(
-                    stock__nse_symbol=kwargs["symbol"]),
+                models.BalanceSheet.objects.filter(stock__nse_symbol=kwargs["symbol"]),
                 many=True,
             ).data
         )
@@ -133,17 +139,23 @@ def design_chart(symbols):
         "percent_change": [],
     }
     for symbol in symbols:
-        df = get_symbol_history(symbol+".NS", "1y", "1wk")
+        df = get_symbol_history(symbol + ".NS", "1y", "1wk")
         data.append({"timestamp": df["index"], "close": df["data"]})
 
     for i in range(0, len(data)):
         closing_prices = data[i]["close"]
         y = []
         for j in range(0, len(closing_prices)):
-            y.append(round((
-                (closing_prices[j][0] - closing_prices[0]
-                 [0]) / closing_prices[0][0]
-            ) * 100, 2))
+            y.append(
+                round(
+                    (
+                        (closing_prices[j][0] - closing_prices[0][0])
+                        / closing_prices[0][0]
+                    )
+                    * 100,
+                    2,
+                )
+            )
         result["percent_change"].append({"symbol": symbols[i], "y": y})
     result["x"] = data[0]["timestamp"]
     return result
