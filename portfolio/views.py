@@ -118,28 +118,29 @@ class HoldingAPI(views.APIView):
         }
 
     def get_holdings(self, holdings):
-        symbol, quantity, sum = holdings[0].stock.nse_symbol, 0, 0
-        context = []
+        context, index, n = [], 0, len(holdings)
+    
+        while index < n:
+            sum, quantity = 0, 0
+            symbol = holdings[index].stock.nse_symbol
+            ltp = nse.get_quote(symbol)["lastPrice"]
 
-        for i in range(len(holdings)):
-            holding = holdings[i]
-            if holding.stock.nse_symbol != symbol or i == len(holdings) - 1:
-                ltp = nse.get_quote(symbol)["lastPrice"]
-                avg_price = round(sum / quantity, 2)
-                context.append(
-                    {
-                        "Symbol": symbol,
-                        "Quantity": quantity,
-                        "Avg Price": avg_price,
-                        "LTP": round(ltp, 2),
-                        "Current Value": round(ltp * quantity, 2),
-                        "P&L": round((ltp - avg_price) * quantity, 2),
-                        "Net Change": round((ltp - avg_price) * 100 / avg_price, 2),
-                    }
-                )
-                symbol, sum, quantity = holding.stock.nse_symbol, 0, 0, 0
-
-            sum += holding.quantity * holding.price
-            quantity += holding.quantity
+            while index < n and holdings[index].stock.nse_symbol == symbol:
+                sum += holdings[index].quantity * holdings[index].price
+                quantity += holdings[index].quantity
+                index += 1
+            
+            avg_price = round(sum / quantity, 2)
+            context.append(
+                {
+                    "Symbol": symbol,
+                    "Quantity": quantity,
+                    "Avg Price": avg_price,
+                    "LTP": round(ltp, 2),
+                    "Current Value": round(ltp * quantity, 2),
+                    "P&L": round((ltp - avg_price) * quantity, 2),
+                    "Net Change": round((ltp - avg_price) * 100 / avg_price, 2),
+                }
+            )
 
         return context
