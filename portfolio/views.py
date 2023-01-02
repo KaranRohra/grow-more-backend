@@ -6,12 +6,24 @@ from rest_framework import permissions
 from rest_framework import status
 
 from portfolio import models
+from portfolio import serializers
 from markets import models as market_models
 from accounts import models as auth_models
 
 
 nse = Nse()
 
+class OrderHistoryAPI(views.APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.TokenAuthentication,)
+
+    def get(self, request):
+        order_history = models.Order.objects.filter(user=request.user).order_by(
+            "-created_at", "stock"
+        )
+        return Response(
+                serializers.OrderHistory(order_history, many=True).data
+        )
 
 class HoldingAPI(views.APIView):
     permission_classes = (permissions.IsAuthenticated,)

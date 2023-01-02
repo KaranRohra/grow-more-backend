@@ -11,6 +11,8 @@ class Order(models.Model):
     )
     quantity = models.IntegerField()
     price = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self) -> str:
         return f"{self.user}__{self.stock}__{self.order_type}"
