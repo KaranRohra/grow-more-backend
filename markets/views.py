@@ -17,13 +17,6 @@ class StockSummaryAPI(views.APIView):
         summary.update(serializers.StockSerializer(stock).data)
         return Response(summary)
 
-    def list_to_dict(self, keys, values):
-        dic = {}
-        for key, value in zip(keys, values):
-            dic[key] = value
-        return dic
-
-
 class GetHistoricalAPI(views.APIView):
     def get(self, request, *args, **kwargs):
         df = get_symbol_history(
