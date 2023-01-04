@@ -10,3 +10,9 @@ class HoldingSerializer(serializers.ModelSerializer):
         model = models.Holding
         fields = "__all__"
 
+class OrderHistory(serializers.ModelSerializer):
+    stock = market_serializer.StockSerializer()
+
+    class Meta:
+        model = models.Order
+        fields = "__all__"
