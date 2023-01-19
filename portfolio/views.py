@@ -1,4 +1,5 @@
 from nsetools import Nse
+from yahoo_fin import stock_info as si
 from rest_framework import views
 from rest_framework.response import Response
 from rest_framework import authentication
@@ -38,7 +39,7 @@ class HoldingAPI(views.APIView):
     def post(self, request):
         quantity = int(request.data["quantity"])
         stock = market_models.Stock.objects.get(nse_symbol=request.data["nse_symbol"])
-        price = nse.get_quote(stock.nse_symbol)["lastPrice"]
+        price = si.get_live_price(stock.yahoo_symbol)
         wallet = auth_models.Wallet.objects.get(user=request.user)
 
         if request.data["type"] == "BUY":
@@ -135,7 +136,7 @@ class HoldingAPI(views.APIView):
         while index < n:
             sum, quantity = 0, 0
             symbol = holdings[index].stock.nse_symbol
-            ltp = nse.get_quote(symbol)["lastPrice"]
+            ltp = si.get_live_price(holdings[index].stock.yahoo_symbol)
 
             while index < n and holdings[index].stock.nse_symbol == symbol:
                 sum += holdings[index].quantity * holdings[index].price
