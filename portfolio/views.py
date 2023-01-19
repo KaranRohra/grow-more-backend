@@ -1,4 +1,3 @@
-from nsetools import Nse
 from yahoo_fin import stock_info as si
 from rest_framework import views
 from rest_framework.response import Response
@@ -12,7 +11,21 @@ from markets import models as market_models
 from accounts import models as auth_models
 
 
-nse = Nse()
+class ProfitLossAPI(views.APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.TokenAuthentication,)
+
+    def get(self, request):
+        holdings = models.Order.objects.filter(user=request.user, order_type="SELL")
+        total_pl, total_pl_percent = 0, 0
+        for holding in holdings:
+            total_pl += holding.profit_loss
+            total_pl_percent += holding.percentage_pl
+
+        return Response({
+            "Total Returns": round(total_pl,2),
+            "Total Returns Percentage": round(total_pl_percent,2),
+        })
 
 class OrderHistoryAPI(views.APIView):
     permission_classes = (permissions.IsAuthenticated,)
@@ -34,27 +47,32 @@ class HoldingAPI(views.APIView):
         holdings = models.Holding.objects.filter(user=request.user).order_by(
             "stock", "-created_at"
         )
-        return Response(self.get_holdings(holdings))
+        return Response(get_holdings(holdings))
 
     def post(self, request):
         quantity = int(request.data["quantity"])
         stock = market_models.Stock.objects.get(nse_symbol=request.data["nse_symbol"])
-        price = si.get_live_price(stock.yahoo_symbol)
+        price = round(si.get_live_price(stock.yahoo_symbol),2)
         wallet = auth_models.Wallet.objects.get(user=request.user)
 
         if request.data["type"] == "BUY":
             response = self.buy_stock(wallet, price, request.user, quantity, stock)
         elif request.data["type"] == "SELL":
-            response = self.sell_stock(
-                models.Holding.objects.filter(user=request.user, stock=stock).order_by(
-                    "created_at"
-                ),
-                quantity,
-                wallet,
-                price,
-                request.user,
-                stock,
-            )
+            if quantity == 0:
+                response = {
+                    "message": "Quantity cannot be zero"
+                }
+            else: 
+                response = self.sell_stock(
+                    models.Holding.objects.filter(user=request.user, stock=stock).order_by(
+                        "created_at"
+                    ),
+                    quantity,
+                    wallet,
+                    price,
+                    request.user,
+                    stock,
+                )
         else:
             response = {
                 "message": "Invalid order type",
@@ -109,10 +127,20 @@ class HoldingAPI(views.APIView):
                 "status": status.HTTP_400_BAD_REQUEST,
             }
 
+        holdings = models.Holding.objects.filter(user=user).order_by(
+            "stock", "-created_at"
+        )
+        
+        holdings = get_holdings(holdings)
+        total_holdings = [holding for holding in holdings if holding["Symbol"] == stock.nse_symbol]
+        total_pl = round(quantity*price - quantity * total_holdings[0]["Avg Price"], 2)
+        total_pl_percentage = round((total_pl * 100) / (quantity * total_holdings[0]["Avg Price"]), 2)
+        print(total_pl_percentage)
+
         wallet.balance += price * quantity
         wallet.save()
         models.Order.objects.create(
-            user=user, stock=stock, order_type="SELL", quantity=quantity, price=price
+            user=user, stock=stock, order_type="SELL", quantity=quantity, price=price, profit_loss=total_pl, percentage_pl=total_pl_percentage
         )
 
         for holdings in holding_data:
@@ -130,30 +158,30 @@ class HoldingAPI(views.APIView):
             "status": status.HTTP_200_OK,
         }
 
-    def get_holdings(self, holdings):
-        context, index, n = [], 0, len(holdings)
+def get_holdings(holdings):
+    context, index, n = [], 0, len(holdings)
+    while index < n:
+        sm, quantity = 0, 0
+        symbol = holdings[index].stock.nse_symbol
+        ltp = si.get_live_price(holdings[index].stock.yahoo_symbol)
+        
+
+        while index < n and holdings[index].stock.nse_symbol == symbol:
+            sm += holdings[index].quantity * holdings[index].price
+            quantity += holdings[index].quantity
+            index += 1
+        
+        avg_price = round(sm / quantity, 2)
+        context.append(
+            {
+                "Symbol": symbol,
+                "Quantity": quantity,
+                "Avg Price": avg_price,
+                "LTP": round(ltp, 2),
+                "Current Value": round(ltp * quantity, 2),
+                "P&L": round((ltp - avg_price) * quantity, 2),
+                "Net Change": round((ltp - avg_price) * 100 / avg_price, 2),
+            }
+        )
     
-        while index < n:
-            sum, quantity = 0, 0
-            symbol = holdings[index].stock.nse_symbol
-            ltp = si.get_live_price(holdings[index].stock.yahoo_symbol)
-
-            while index < n and holdings[index].stock.nse_symbol == symbol:
-                sum += holdings[index].quantity * holdings[index].price
-                quantity += holdings[index].quantity
-                index += 1
-            
-            avg_price = round(sum / quantity, 2)
-            context.append(
-                {
-                    "Symbol": symbol,
-                    "Quantity": quantity,
-                    "Avg Price": avg_price,
-                    "LTP": round(ltp, 2),
-                    "Current Value": round(ltp * quantity, 2),
-                    "P&L": round((ltp - avg_price) * quantity, 2),
-                    "Net Change": round((ltp - avg_price) * 100 / avg_price, 2),
-                }
-            )
-
-        return context
+    return context
