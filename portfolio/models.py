@@ -11,6 +11,8 @@ class Order(models.Model):
     )
     quantity = models.IntegerField()
     price = models.IntegerField()
+    profit_loss = models.IntegerField(default=0)
+    percentage_pl = models.FloatField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
