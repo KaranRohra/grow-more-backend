@@ -13,6 +13,7 @@ urlpatterns = [
     path("<str:symbol>/peers/", views.GetStockPeerAPI().as_view(), name="peers"),
     path("comparison/", views.GetComparisonAPI().as_view(), name="comparison"),
     path("search/", views.SearchStockAPI.as_view(), name="search-stock"),
+    path("forecast/", views.PricePredictionAPI().as_view(), name="price-prediction"), 
 
     # Data Feeding APIs
     path("insert-data/", views.InsertStockDataAPI.as_view(), name="insert-data"),

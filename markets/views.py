@@ -3,10 +3,22 @@ from yahoo_fin import stock_info as si
 from rest_framework import views
 from rest_framework.response import Response
 from rest_framework import generics
+from rest_framework import authentication
+from rest_framework import permissions
+
 from django.db import models as db_models
 from markets import models
 from markets import serializers
 from markets import data_feeder
+from markets import forecast
+
+
+class PricePredictionAPI(views.APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.TokenAuthentication,)
+
+    def get(self, request, *args, **kwargs):
+        return Response(forecast.forecast_price(request.query_params["symbol"], int(request.query_params["forecast_days"])))
 
 
 class StockSummaryAPI(views.APIView):
