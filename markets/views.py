@@ -14,9 +14,6 @@ from markets import forecast
 
 
 class PricePredictionAPI(views.APIView):
-    permission_classes = (permissions.IsAuthenticated,)
-    authentication_classes = (authentication.TokenAuthentication,)
-
     def get(self, request, *args, **kwargs):
         return Response(forecast.forecast_price(request.query_params["symbol"], int(request.query_params["forecast_days"])))
 

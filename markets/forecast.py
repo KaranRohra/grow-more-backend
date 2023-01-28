@@ -1,6 +1,6 @@
 import datetime as dt
 import numpy as np
-import holidays
+
 
 from nsepython import *
 from sklearn.preprocessing import MinMaxScaler
