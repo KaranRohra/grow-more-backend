@@ -1,12 +1,40 @@
 import yfinance
+import datetime as dt
 from yahoo_fin import stock_info as si
 from rest_framework import views
 from rest_framework.response import Response
 from rest_framework import generics
+
 from django.db import models as db_models
 from markets import models
 from markets import serializers
 from markets import data_feeder
+from markets import forecast
+
+
+dic = {}
+forecast_date = str(dt.datetime.today().date())
+
+
+class PricePredictionAPI(views.APIView):
+    def get(self, request, *args, **kwargs):
+        global dic, forecast_date
+
+        if str(dt.datetime.today().date()) != forecast_date:
+            dic, forecast_date = {}, str(dt.datetime.today().date())
+
+        symbol, forecast_days = request.query_params[
+            "symbol"
+        ], request.query_params.get("forecast_days", 30)
+
+        key = (symbol, forecast_days)
+        if key not in dic:
+            dic[key] = forecast.forecast_price(
+                symbol,
+                int(forecast_days),
+            )
+
+        return Response(dic[key])
 
 
 class StockSummaryAPI(views.APIView):
@@ -16,6 +44,7 @@ class StockSummaryAPI(views.APIView):
         stock = models.Stock.objects.filter(yahoo_symbol=kwargs["symbol"]).first()
         summary.update(serializers.StockSerializer(stock).data)
         return Response(summary)
+
 
 class GetHistoricalAPI(views.APIView):
     def get(self, request, *args, **kwargs):
