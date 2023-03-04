@@ -27,7 +27,7 @@ def convert_date(date):
         "Dec": 12,
     }
 
-    dd, mm, yy = date.split('-')
+    dd, mm, yy = date.split("-")
     return [int(dd), months.get(mm), int(yy)]
 
 
@@ -38,14 +38,13 @@ def get_working_dates(n_days):
     d = [data["tradingDate"] for data in nse_holidays()["SLBS"]]
     for data in d:
         dd, mm, yy = convert_date(data)
-        holidays.append(dt.date(yy,mm,dd))
+        holidays.append(dt.date(yy, mm, dd))
     while n < n_days:
         today += dt.timedelta(days=1)
         if today.weekday() not in [5, 6] and today not in holidays:
             working_dates.append(today)
             n += 1
     return working_dates
-
 
 
 def forecast_price(symbol, forecast_days):
@@ -59,7 +58,7 @@ def forecast_price(symbol, forecast_days):
         dataset[-last_n_days:], forecast_days, model=train_model(dataset, last_n_days)
     )
 
-    return get_working_dates(forecast_days), predicted_price
+    return [(d, p) for d, p in zip(get_working_dates(forecast_days), [p[0] for p in predicted_price])]
 
 
 def train_model(dataset, last_n_days):
