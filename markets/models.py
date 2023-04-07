@@ -8,6 +8,7 @@ class Stock(models.Model):
     bse_symbol = models.CharField(max_length=256, unique=True)
     yahoo_symbol = models.CharField(max_length=256, unique=True)
     isin_code = models.CharField(max_length=256, unique=True)
+    description = models.TextField(default=None)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
